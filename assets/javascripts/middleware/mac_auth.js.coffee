@@ -1,4 +1,4 @@
-#= require hmac_sha256
+#= require sjcl
 
 HTTP.Middleware ||= {}
 class HTTP.Middleware.MacAuth
@@ -13,7 +13,8 @@ class HTTP.Middleware.MacAuth
 
   signRequest: (request, body, options = @options) =>
     request_string = @buildRequestString(request, body)
-    signature = CryptoJS.enc.Base64.stringify(CryptoJS.HmacSHA256(request_string, options.mac_key))
+    hmac = new sjcl.misc.hmac(sjcl.codec.utf8String.toBits(options.mac_key))
+    signature = sjcl.codec.base64.fromBits(hmac.mac(request_string))
     request.setHeader('Authorization', @buildAuthHeader(signature))
 
   buildRequestString: (request, body, options = @options) =>
